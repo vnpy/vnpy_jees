@@ -1,4 +1,4 @@
-# VeighNa框架的CTP底层接口
+# VeighNa框架的JEES底层接口
 
 <p align="center">
   <img src ="https://vnpy.oss-cn-shanghai.aliyuncs.com/vnpy-logo.png"/>
@@ -13,7 +13,7 @@
 
 ## 说明
 
-基于CTP期货版的6.6.7接口封装开发，接口中自带的是【穿透式实盘环境】的dll文件。
+基于JEES的API交易接口封装开发，行情接口默认使用CTP，因此使用前需要事先安装vnpy_ctp模块。
 
 ## 安装
 
@@ -32,7 +32,7 @@ pip install vnpy_jees
 pip install .
 ```
 
-使用源代码安装时需要进行C++编译，因此在执行上述命令之前请确保已经安装了【Visual Studio（Windows）】或者【GCC（Linux）】编译器。
+使用源代码安装时需要进行C++编译，因此在执行上述命令之前请确保已经安装了【Visual Studio（Windows）】编译器。
 
 ## 使用
 
@@ -43,7 +43,7 @@ from vnpy.event import EventEngine
 from vnpy.trader.engine import MainEngine
 from vnpy.trader.ui import MainWindow, create_qapp
 
-from vnpy_jees import CtpGateway
+from vnpy_jees import JeesGateway
 
 
 def main():
@@ -52,7 +52,7 @@ def main():
 
     event_engine = EventEngine()
     main_engine = MainEngine(event_engine)
-    main_engine.add_gateway(CtpGateway)
+    main_engine.add_gateway(JeesGateway)
     
     main_window = MainWindow(main_engine, event_engine)
     main_window.showMaximized()

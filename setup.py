@@ -52,6 +52,6 @@ def get_ext_modules() -> list:
     )
 
     #return [vnctptd, vnctpmd]
-    return vnjeestd
+    return [vnjeestd]
 
 setup(ext_modules=get_ext_modules())

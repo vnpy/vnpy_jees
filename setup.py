@@ -44,14 +44,15 @@ def get_ext_modules() -> list:
         sources=["vnpy_jees/api/vnjees/vnjeestd/vnjeestd.cpp"],
         include_dirs=["vnpy_jees/api/include", "vnpy_jees/api/vnjees"],
         library_dirs=["vnpy_jees/api/libs", "vnpy_jees/api"],
-        libraries=["thostmduserapi_se", "thosttraderapi_se"],
+        libraries=["thosttraderapi_se"],
         extra_compile_args=extra_compile_flags,
         extra_link_args=extra_link_args,
         runtime_library_dirs=runtime_library_dirs,
+        define_macros=[("NOMINMAX", None)],
         language="cpp",
     )
 
     #return [vnctptd, vnctpmd]
-    return vnjeestd
+    return [vnjeestd]
 
 setup(ext_modules=get_ext_modules())

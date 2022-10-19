@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-    <img src ="https://img.shields.io/badge/version-6.6.7.0-blueviolet.svg"/>
-    <img src ="https://img.shields.io/badge/platform-windows|linux-yellow.svg"/>
+    <img src ="https://img.shields.io/badge/version-6.6.1.0-blueviolet.svg"/>
+    <img src ="https://img.shields.io/badge/platform-windows-yellow.svg"/>
     <img src ="https://img.shields.io/badge/python-3.7|3.8|3.9|3.10-blue.svg" />
     <img src ="https://img.shields.io/github/license/vnpy/vnpy.svg?color=orange"/>
 </p>

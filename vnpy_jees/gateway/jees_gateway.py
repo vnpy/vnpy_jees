@@ -183,7 +183,7 @@ class JeesGateway(BaseGateway):
             md_address = "tcp://" + md_address
 
         self.td_api.connect(td_address, userid, password, brokerid, auth_code, appid)
-        self.md_api.connect(md_address, userid, password, brokerid)
+        #self.md_api.connect(md_address, userid, password, brokerid)
 
         self.init_query()
 
@@ -206,7 +206,7 @@ class JeesGateway(BaseGateway):
     def query_position(self) -> None:
         """查询持仓"""
         self.td_api.query_position()
-
+  
     def close(self) -> None:
         """关闭接口"""
         self.td_api.close()
@@ -231,7 +231,7 @@ class JeesGateway(BaseGateway):
         self.query_functions.append(func)
 
         self.md_api.update_date()
-
+    
     def init_query(self) -> None:
         """初始化查询任务"""
         self.count: int = 0
@@ -240,6 +240,7 @@ class JeesGateway(BaseGateway):
 
 
 class CtpMdApi(MdApi):
+    
 
     def __init__(self, gateway: JeesGateway) -> None:
         """构造函数"""
@@ -400,7 +401,7 @@ class CtpMdApi(MdApi):
     def update_date(self) -> None:
         """更新当前日期"""
         self.current_date = datetime.now().strftime("%Y%m%d")
-
+""""""
 
 class JeesTdApi(TdApi):
     """"""
@@ -519,7 +520,7 @@ class JeesTdApi(TdApi):
                 break
             else:
                 sleep(1)
-
+        
         while True:
             self.reqid += 1
             n: int = self.query_order()
@@ -674,7 +675,7 @@ class JeesTdApi(TdApi):
             gateway_name=self.gateway_name
         )
         self.gateway.on_trade(trade)
-
+        
     def onRspQryInstrument(self, data: dict, error: dict, reqid: int, last: bool) -> None:
         """合约查询回报"""
         product: Product = PRODUCT_JEES2VT.get(data["ProductClass"], None)
@@ -930,7 +931,7 @@ class JeesTdApi(TdApi):
 
         self.reqid += 1
         self.reqQryInvestorPosition(jees_req, self.reqid)
-
+    
     def query_order(self) -> None:
         """查询委托"""
         jees_req: dict = {
@@ -948,7 +949,7 @@ class JeesTdApi(TdApi):
         }
 
         self.reqQryTrade(jees_req, self.reqid)
-
+    
     def close(self) -> None:
         """关闭连接"""
         if self.connect_status:

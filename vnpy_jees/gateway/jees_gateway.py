@@ -3,7 +3,7 @@ from datetime import datetime
 from time import sleep
 from pathlib import Path
 
-from vnpy.event import EventEngine
+from vnpy.event import EventEngine, Event
 from vnpy.trader.constant import (
     Direction,
     Offset,
@@ -27,7 +27,6 @@ from vnpy.trader.object import (
 )
 from vnpy.trader.utility import get_folder_path, ZoneInfo
 from vnpy.trader.event import EVENT_TIMER
-
 
 from ..api import (
     TdApi,
@@ -157,6 +156,8 @@ class JeesGateway(BaseGateway):
         self.td_api: JeesTdApi = JeesTdApi(self)
         self.md_api: CtpMdApi = CtpMdApi(self)
 
+        self.count: int = 0
+
     def connect(self, setting: dict) -> None:
         """连接交易接口"""
         userid: str = setting["用户名"]
@@ -215,10 +216,10 @@ class JeesGateway(BaseGateway):
         """输出错误信息日志"""
         error_id: int = error["ErrorID"]
         error_msg: str = error["ErrorMsg"]
-        msg: str = f"{msg}，代码：{error_id}，信息：{error_msg}"
+        msg = f"{msg}，代码：{error_id}，信息：{error_msg}"
         self.write_log(msg)
 
-    def process_timer_event(self, event) -> None:
+    def process_timer_event(self, event: Event) -> None:
         """定时事件处理"""
         self.count += 1
         if self.count < 2:
@@ -233,7 +234,7 @@ class JeesGateway(BaseGateway):
 
     def init_query(self) -> None:
         """初始化查询任务"""
-        self.count: int = 0
+        self.count = 0
         self.query_functions: list = [self.query_account, self.query_position]
         self.event_engine.register(EVENT_TIMER, self.process_timer_event)
 
@@ -307,11 +308,11 @@ class CtpMdApi(MdApi):
         if not data["ActionDay"] or contract.exchange == Exchange.DCE:
             date_str: str = self.current_date
         else:
-            date_str: str = data["ActionDay"]
+            date_str = data["ActionDay"]
 
         timestamp: str = f"{date_str} {data['UpdateTime']}.{int(data['UpdateMillisec']/100)}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S.%f")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         tick: TickData = TickData(
             symbol=symbol,
@@ -521,7 +522,7 @@ class JeesTdApi(TdApi):
 
         while True:
             self.reqid += 1
-            n: int = self.query_order()
+            n = self.query_order()
 
             if not n:
                 break
@@ -530,7 +531,7 @@ class JeesTdApi(TdApi):
 
         while True:
             self.reqid += 1
-            n: int = self.query_trade()
+            n = self.query_trade()
 
             if not n:
                 break
@@ -624,7 +625,7 @@ class JeesTdApi(TdApi):
 
         timestamp: str = f"{data['InsertDate']} {data['InsertTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         tp: tuple = (data["OrderPriceType"], data["TimeCondition"], data["VolumeCondition"])
 
@@ -658,7 +659,7 @@ class JeesTdApi(TdApi):
 
         timestamp: str = f"{data['TradeDate']} {data['TradeTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         trade: TradeData = TradeData(
             symbol=symbol,
@@ -735,7 +736,7 @@ class JeesTdApi(TdApi):
 
         timestamp: str = f"{data['InsertDate']} {data['InsertTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         tp: tuple = (data["OrderPriceType"], data["TimeCondition"], data["VolumeCondition"])
 
@@ -770,7 +771,7 @@ class JeesTdApi(TdApi):
 
         timestamp: str = f"{data['TradeDate']} {data['TradeTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         trade: TradeData = TradeData(
             symbol=symbol,
@@ -892,7 +893,8 @@ class JeesTdApi(TdApi):
         order: OrderData = req.create_order_data(orderid, self.gateway_name)
         self.gateway.on_order(order)
 
-        return order.vt_orderid
+        vt_orderid: str = order.vt_orderid
+        return vt_orderid
 
     def cancel_order(self, req: CancelRequest) -> None:
         """委托撤单"""
@@ -930,23 +932,25 @@ class JeesTdApi(TdApi):
         self.reqid += 1
         self.reqQryInvestorPosition(jees_req, self.reqid)
 
-    def query_order(self) -> None:
+    def query_order(self) -> int:
         """查询委托"""
         jees_req: dict = {
             "BrokerID": self.brokerid,
             "InvestorID": self.userid
         }
 
-        self.reqQryOrder(jees_req, self.reqid)
+        n: int = self.reqQryOrder(jees_req, self.reqid)
+        return n
 
-    def query_trade(self) -> None:
+    def query_trade(self) -> int:
         """查询成交"""
         jees_req: dict = {
             "BrokerID": self.brokerid,
             "InvestorID": self.userid
         }
 
-        self.reqQryTrade(jees_req, self.reqid)
+        n: int = self.reqQryTrade(jees_req, self.reqid)
+        return n
 
     def close(self) -> None:
         """关闭连接"""

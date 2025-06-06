@@ -1,2 +1,2 @@
-from .vnjeestd import TdApi
-from .jees_constant import *
+from .vnjeestd import TdApi      # noqa
+from .jees_constant import *     # noqa

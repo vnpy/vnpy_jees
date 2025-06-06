@@ -1,5 +1,5 @@
 [project]
-name = "vnpy_ctp"
+name = "vnpy_jees"
 version = "6.6.1.1"
 description = "Jees gateway for vn.py quant trading framework."
 readme = "README.md"

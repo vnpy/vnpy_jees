@@ -26,6 +26,9 @@ import importlib_metadata
 from .gateway import JeesGateway
 
 
+__all__ = ["JeesGateway"]
+
+
 try:
     __version__ = importlib_metadata.version("vnpy_jees")
 except importlib_metadata.PackageNotFoundError:

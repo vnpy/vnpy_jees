@@ -1,10 +1,9 @@
 import sys
 from datetime import datetime
 from time import sleep
-from typing import Dict, List, Tuple
 from pathlib import Path
 
-from vnpy.event import EventEngine
+from vnpy.event import EventEngine, Event
 from vnpy.trader.constant import (
     Direction,
     Offset,
@@ -28,7 +27,6 @@ from vnpy.trader.object import (
 )
 from vnpy.trader.utility import get_folder_path, ZoneInfo
 from vnpy.trader.event import EVENT_TIMER
-
 
 from ..api import (
     TdApi,
@@ -65,7 +63,7 @@ from ..api import (
 
 from vnpy_ctp.api import MdApi
 # 委托状态映射
-STATUS_JEES2VT: Dict[str, Status] = {
+STATUS_JEES2VT: dict[str, Status] = {
     THOST_FTDC_OST_NoTradeQueueing: Status.NOTTRADED,
     THOST_FTDC_OST_PartTradedQueueing: Status.PARTTRADED,
     THOST_FTDC_OST_AllTraded: Status.ALLTRADED,
@@ -74,34 +72,34 @@ STATUS_JEES2VT: Dict[str, Status] = {
 }
 
 # 多空方向映射
-DIRECTION_VT2JEES: Dict[Direction, str] = {
+DIRECTION_VT2JEES: dict[Direction, str] = {
     Direction.LONG: THOST_FTDC_D_Buy,
     Direction.SHORT: THOST_FTDC_D_Sell
 }
-DIRECTION_JEES2VT: Dict[str, Direction] = {v: k for k, v in DIRECTION_VT2JEES.items()}
+DIRECTION_JEES2VT: dict[str, Direction] = {v: k for k, v in DIRECTION_VT2JEES.items()}
 DIRECTION_JEES2VT[THOST_FTDC_PD_Long] = Direction.LONG
 DIRECTION_JEES2VT[THOST_FTDC_PD_Short] = Direction.SHORT
 
 # 委托类型映射
-ORDERTYPE_VT2JEES: Dict[OrderType, tuple] = {
+ORDERTYPE_VT2JEES: dict[OrderType, tuple] = {
     OrderType.LIMIT: (THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_AV),
     OrderType.MARKET: (THOST_FTDC_OPT_AnyPrice, THOST_FTDC_TC_GFD, THOST_FTDC_VC_AV),
     OrderType.FAK: (THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_IOC, THOST_FTDC_VC_AV),
     OrderType.FOK: (THOST_FTDC_OPT_LimitPrice, THOST_FTDC_TC_IOC, THOST_FTDC_VC_CV),
 }
-ORDERTYPE_JEES2VT: Dict[Tuple, OrderType] = {v: k for k, v in ORDERTYPE_VT2JEES.items()}
+ORDERTYPE_JEES2VT: dict[tuple, OrderType] = {v: k for k, v in ORDERTYPE_VT2JEES.items()}
 
 # 开平方向映射
-OFFSET_VT2JEES: Dict[Offset, str] = {
+OFFSET_VT2JEES: dict[Offset, str] = {
     Offset.OPEN: THOST_FTDC_OF_Open,
     Offset.CLOSE: THOST_FTDC_OFEN_Close,
     Offset.CLOSETODAY: THOST_FTDC_OFEN_CloseToday,
     Offset.CLOSEYESTERDAY: THOST_FTDC_OFEN_CloseYesterday,
 }
-OFFSET_JEES2VT: Dict[str, Offset] = {v: k for k, v in OFFSET_VT2JEES.items()}
+OFFSET_JEES2VT: dict[str, Offset] = {v: k for k, v in OFFSET_VT2JEES.items()}
 
 # 交易所映射
-EXCHANGE_JEES2VT: Dict[str, Exchange] = {
+EXCHANGE_JEES2VT: dict[str, Exchange] = {
     "CFFEX": Exchange.CFFEX,
     "SHFE": Exchange.SHFE,
     "CZCE": Exchange.CZCE,
@@ -111,7 +109,7 @@ EXCHANGE_JEES2VT: Dict[str, Exchange] = {
 }
 
 # 产品类型映射
-PRODUCT_JEES2VT: Dict[str, Product] = {
+PRODUCT_JEES2VT: dict[str, Product] = {
     THOST_FTDC_PC_Futures: Product.FUTURES,
     THOST_FTDC_PC_Options: Product.OPTION,
     THOST_FTDC_PC_SpotOption: Product.OPTION,
@@ -119,7 +117,7 @@ PRODUCT_JEES2VT: Dict[str, Product] = {
 }
 
 # 期权类型映射
-OPTIONTYPE_JEES2VT: Dict[str, OptionType] = {
+OPTIONTYPE_JEES2VT: dict[str, OptionType] = {
     THOST_FTDC_CP_CallOptions: OptionType.CALL,
     THOST_FTDC_CP_PutOptions: OptionType.PUT
 }
@@ -129,7 +127,7 @@ MAX_FLOAT = sys.float_info.max                  # 浮点数极限值
 CHINA_TZ = ZoneInfo("Asia/Shanghai")       # 中国时区
 
 # 合约数据全局缓存字典
-symbol_contract_map: Dict[str, ContractData] = {}
+symbol_contract_map: dict[str, ContractData] = {}
 
 
 class JeesGateway(BaseGateway):
@@ -139,7 +137,7 @@ class JeesGateway(BaseGateway):
 
     default_name: str = "JEES"
 
-    default_setting: Dict[str, str] = {
+    default_setting: dict[str, str] = {
         "用户名": "",
         "密码": "",
         "经纪商代码": "",
@@ -149,14 +147,16 @@ class JeesGateway(BaseGateway):
         "授权编码": ""
     }
 
-    exchanges: List[str] = list(EXCHANGE_JEES2VT.values())
+    exchanges: list[str] = list(EXCHANGE_JEES2VT.values())
 
     def __init__(self, event_engine: EventEngine, gateway_name: str) -> None:
         """构造函数"""
         super().__init__(event_engine, gateway_name)
 
-        self.td_api: "JeesTdApi" = JeesTdApi(self)
-        self.md_api: "CtpMdApi" = CtpMdApi(self)
+        self.td_api: JeesTdApi = JeesTdApi(self)
+        self.md_api: CtpMdApi = CtpMdApi(self)
+
+        self.count: int = 0
 
     def connect(self, setting: dict) -> None:
         """连接交易接口"""
@@ -216,10 +216,10 @@ class JeesGateway(BaseGateway):
         """输出错误信息日志"""
         error_id: int = error["ErrorID"]
         error_msg: str = error["ErrorMsg"]
-        msg: str = f"{msg}，代码：{error_id}，信息：{error_msg}"
+        msg = f"{msg}，代码：{error_id}，信息：{error_msg}"
         self.write_log(msg)
 
-    def process_timer_event(self, event) -> None:
+    def process_timer_event(self, event: Event) -> None:
         """定时事件处理"""
         self.count += 1
         if self.count < 2:
@@ -234,7 +234,7 @@ class JeesGateway(BaseGateway):
 
     def init_query(self) -> None:
         """初始化查询任务"""
-        self.count: int = 0
+        self.count = 0
         self.query_functions: list = [self.query_account, self.query_position]
         self.event_engine.register(EVENT_TIMER, self.process_timer_event)
 
@@ -308,11 +308,11 @@ class CtpMdApi(MdApi):
         if not data["ActionDay"] or contract.exchange == Exchange.DCE:
             date_str: str = self.current_date
         else:
-            date_str: str = data["ActionDay"]
+            date_str = data["ActionDay"]
 
         timestamp: str = f"{date_str} {data['UpdateTime']}.{int(data['UpdateMillisec']/100)}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S.%f")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         tick: TickData = TickData(
             symbol=symbol,
@@ -430,10 +430,10 @@ class JeesTdApi(TdApi):
 
         self.frontid: int = 0
         self.sessionid: int = 0
-        self.order_data: List[dict] = []
-        self.trade_data: List[dict] = []
-        self.positions: Dict[str, PositionData] = {}
-        self.sysid_orderid_map: Dict[str, str] = {}
+        self.order_data: list[dict] = []
+        self.trade_data: list[dict] = []
+        self.positions: dict[str, PositionData] = {}
+        self.sysid_orderid_map: dict[str, str] = {}
 
     def onFrontConnected(self) -> None:
         """服务器连接成功回报"""
@@ -522,7 +522,7 @@ class JeesTdApi(TdApi):
 
         while True:
             self.reqid += 1
-            n: int = self.query_order()
+            n = self.query_order()
 
             if not n:
                 break
@@ -531,7 +531,7 @@ class JeesTdApi(TdApi):
 
         while True:
             self.reqid += 1
-            n: int = self.query_trade()
+            n = self.query_trade()
 
             if not n:
                 break
@@ -625,7 +625,7 @@ class JeesTdApi(TdApi):
 
         timestamp: str = f"{data['InsertDate']} {data['InsertTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         tp: tuple = (data["OrderPriceType"], data["TimeCondition"], data["VolumeCondition"])
 
@@ -659,7 +659,7 @@ class JeesTdApi(TdApi):
 
         timestamp: str = f"{data['TradeDate']} {data['TradeTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         trade: TradeData = TradeData(
             symbol=symbol,
@@ -736,7 +736,7 @@ class JeesTdApi(TdApi):
 
         timestamp: str = f"{data['InsertDate']} {data['InsertTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         tp: tuple = (data["OrderPriceType"], data["TimeCondition"], data["VolumeCondition"])
 
@@ -771,7 +771,7 @@ class JeesTdApi(TdApi):
 
         timestamp: str = f"{data['TradeDate']} {data['TradeTime']}"
         dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
-        dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+        dt = dt.replace(tzinfo=CHINA_TZ)
 
         trade: TradeData = TradeData(
             symbol=symbol,
@@ -893,7 +893,8 @@ class JeesTdApi(TdApi):
         order: OrderData = req.create_order_data(orderid, self.gateway_name)
         self.gateway.on_order(order)
 
-        return order.vt_orderid
+        vt_orderid: str = order.vt_orderid
+        return vt_orderid
 
     def cancel_order(self, req: CancelRequest) -> None:
         """委托撤单"""
@@ -931,23 +932,25 @@ class JeesTdApi(TdApi):
         self.reqid += 1
         self.reqQryInvestorPosition(jees_req, self.reqid)
 
-    def query_order(self) -> None:
+    def query_order(self) -> int:
         """查询委托"""
         jees_req: dict = {
             "BrokerID": self.brokerid,
             "InvestorID": self.userid
         }
 
-        self.reqQryOrder(jees_req, self.reqid)
+        n: int = self.reqQryOrder(jees_req, self.reqid)
+        return n
 
-    def query_trade(self) -> None:
+    def query_trade(self) -> int:
         """查询成交"""
         jees_req: dict = {
             "BrokerID": self.brokerid,
             "InvestorID": self.userid
         }
 
-        self.reqQryTrade(jees_req, self.reqid)
+        n: int = self.reqQryTrade(jees_req, self.reqid)
+        return n
 
     def close(self) -> None:
         """关闭连接"""

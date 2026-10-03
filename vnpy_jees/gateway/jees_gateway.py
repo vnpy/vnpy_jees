@@ -1,3 +1,5 @@
+"""实现杰宜斯交易接口。"""
+
 import sys
 from datetime import datetime
 from time import sleep
@@ -240,6 +242,7 @@ class JeesGateway(BaseGateway):
 
 
 class CtpMdApi(MdApi):
+    """杰宜斯柜台使用的 CTP 行情接口。"""
 
     def __init__(self, gateway: JeesGateway) -> None:
         """构造函数"""
@@ -403,7 +406,7 @@ class CtpMdApi(MdApi):
 
 
 class JeesTdApi(TdApi):
-    """"""
+    """对接杰宜斯柜台的交易接口。"""
 
     def __init__(self, gateway: JeesGateway) -> None:
         """构造函数"""

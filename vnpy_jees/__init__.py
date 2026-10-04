@@ -22,7 +22,7 @@
 """VeighNa 杰宜斯交易接口。"""
 
 
-import importlib_metadata
+from importlib import metadata
 
 from .gateway import JeesGateway
 
@@ -31,6 +31,6 @@ __all__ = ["JeesGateway"]
 
 
 try:
-    __version__ = importlib_metadata.version("vnpy_jees")
-except importlib_metadata.PackageNotFoundError:
+    __version__ = metadata.version("vnpy_jees")
+except metadata.PackageNotFoundError:
     __version__ = "dev"

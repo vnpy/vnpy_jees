@@ -1,5 +1,6 @@
 """实现杰宜斯交易接口。"""
 
+from collections.abc import Callable
 import sys
 from datetime import datetime
 from time import sleep
@@ -125,8 +126,8 @@ OPTIONTYPE_JEES2VT: dict[str, OptionType] = {
 }
 
 # 其他常量
-MAX_FLOAT = sys.float_info.max                  # 浮点数极限值
-CHINA_TZ = ZoneInfo("Asia/Shanghai")       # 中国时区
+MAX_FLOAT: float = sys.float_info.max                  # 浮点数极限值
+CHINA_TZ: ZoneInfo = ZoneInfo("Asia/Shanghai")       # 中国时区
 
 # 合约数据全局缓存字典
 symbol_contract_map: dict[str, ContractData] = {}
@@ -228,7 +229,7 @@ class JeesGateway(BaseGateway):
             return
         self.count = 0
 
-        func = self.query_functions.pop(0)
+        func: Callable[[], None] = self.query_functions.pop(0)
         func()
         self.query_functions.append(func)
 
@@ -279,6 +280,7 @@ class CtpMdApi(MdApi):
             self.login_status = True
             self.gateway.write_log("行情服务器登录成功")
 
+            symbol: str
             for symbol in self.subscribed:
                 self.subscribeMarketData(symbol)
         else:
@@ -863,6 +865,9 @@ class JeesTdApi(TdApi):
         self.order_ref += 1
 
         tp: tuple = ORDERTYPE_VT2JEES[req.type]
+        price_type: str
+        time_condition: str
+        volume_condition: str
         price_type, time_condition, volume_condition = tp
 
         jees_req: dict = {
@@ -901,6 +906,9 @@ class JeesTdApi(TdApi):
 
     def cancel_order(self, req: CancelRequest) -> None:
         """委托撤单"""
+        frontid: str
+        sessionid: str
+        order_ref: str
         frontid, sessionid, order_ref = req.orderid.split("_")
 
         jees_req: dict = {

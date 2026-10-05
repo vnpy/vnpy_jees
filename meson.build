@@ -1,7 +1,7 @@
 project(
   'vnpy_jees',
   'cpp',
-  version: '6.6.1.1',
+  version: '6.6.1.2',
   license: 'MIT',
   meson_version: '>=1.7.0',
   default_options: [

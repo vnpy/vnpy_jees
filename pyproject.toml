@@ -1,6 +1,6 @@
 [project]
 name = "vnpy_jees"
-version = "6.6.1.1"
+version = "6.6.1.2"
 description = "Jees gateway for vn.py quant trading framework."
 readme = "README.md"
 license = {text = "MIT"}
